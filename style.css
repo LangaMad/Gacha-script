@@ -76,6 +76,7 @@ video {
     align-items: center;
 }
 
+
 .result-card {
     background: rgba(30, 30, 50, 0.9);
     padding: 40px 60px;
@@ -85,16 +86,34 @@ video {
     box-shadow: 0 0 40px rgba(0,0,0,0.4);
 }
 
+/* Возвращаем заголовку его обычный вид */
 .win-title {
     font-size: 3rem;
     margin-bottom: 20px;
 }
 
-.item-icon {
-    width: 180px;
-    height: 180px;
-    object-fit: contain;
-    margin: 10px 0;
+.item-name {
+    font-size: 2.8rem;
+    font-weight: bold;
+    margin-bottom: 40px;
+    margin-top: 30px;
+    transition: color 0.3s, text-shadow 0.3s; /* Плавный переход */
+}
+
+/* --- ЦВЕТА РЕДКОСТИ ДЛЯ НАЗВАНИЯ ПРЕДМЕТА --- */
+.item-name-blue {
+    color: #5ecbff;
+    text-shadow: 0 0 15px #5ecbff, 0 0 25px #5ecbff;
+}
+
+.item-name-purple {
+    color: #c774ff;
+    text-shadow: 0 0 15px #c774ff, 0 0 25px #c774ff;
+}
+
+.item-name-orange {
+    color: #ff9a4f;
+    text-shadow: 0 0 15px #ff9a4f, 0 0 25px #ff9a4f;
 }
 
 .item-name {
@@ -102,42 +121,23 @@ video {
     font-weight: bold;
     margin-bottom: 40px;
 }
-.win-title-blue {
-    color: #5ecbff;
-    text-shadow: 0 0 15px #5ecbff, 0 0 25px #5ecbff;
-}
-
-.win-title-purple {
-    color: #c774ff;
-    text-shadow: 0 0 15px #c774ff, 0 0 25px #c774ff;
-}
-
-.win-title-orange {
-    color: #ff9a4f;
-    text-shadow: 0 0 15px #ff9a4f, 0 0 25px #ff9a4f;
-}
 
 /* кнопки */
 .buttons {
     display: flex;
-    gap: 20px;
     justify-content: center;
 }
 
-.again-button, .close-button {
+.close-button {
     padding: 15px 40px;
     font-size: 1.8rem;
     border: none;
     border-radius: 20px;
     cursor: pointer;
-}
-
-.again-button {
-    background: #4CAF50;
+    background: #ff5e7e; /* Цвет можно оставить или поменять на более нейтральный */
     color: white;
+    transition: transform 0.2s; /* Добавим небольшую анимацию для красоты */
 }
-
-.close-button {
-    background: #ff5e7e;
-    color: white;
+.close-button:hover {
+    transform: scale(1.05);
 }
