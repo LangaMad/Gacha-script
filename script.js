@@ -1,13 +1,13 @@
 // ——— НАСТРОЙКИ ———
 const items = {
-    blue: ["Значок", ""],
-    purple: ["Подвеска", "Серьги", "Маленький чай"],
-    orange: ["Мику розовая", "Мику голубая", "Большой чай"]
+    blue: ["Значок", "Пин"],
+    purple: ["Маленький брелок"],
+    orange: ["Чай", "Большой брелок", "Фигурка"]
 };
 
 const rarityWeights = {
     blue: 80,
-    purple: 10,
+    purple: 12,
     orange: 2
 };
 
@@ -19,7 +19,7 @@ const rarityVideos = {
 
 // Путь к иконкам (ты сам подставишь свои PNG)
 function getItemIcon(name) {
-    return `images/pins.png`; // например: icons/Кольцо.png
+    return `images/cate.jpg`; // например: icons/Кольцо.png
 }
 
 // ——— ЭЛЕМЕНТЫ ———
@@ -64,10 +64,10 @@ function spinLottery() {
     const list = [...items[chosenRarity]];
     const item = list[Math.floor(Math.random() * list.length)];
 
-    // Если Мику выпала — удаляем
-    if (item.includes("Мику")) {
-        items[chosenRarity] = items[chosenRarity].filter(i => i !== item);
-    }
+    // // Если Мику выпала — удаляем
+    // if (item.includes("Мику")) {
+    //     items[chosenRarity] = items[chosenRarity].filter(i => i !== item);
+    // }
 
     // Проиграть видео
     starVideo.src = rarityVideos[chosenRarity];
@@ -78,9 +78,19 @@ function spinLottery() {
         starVideo.classList.add("hidden");
 
         // Показать результат
-        itemNameEl.textContent = item;
-        itemIcon.src = getItemIcon(item); // иконка
+        winTitleEl.classList.remove('win-title-blue', 'win-title-purple', 'win-title-orange');
 
+        // Добавляем класс в зависимости от редкости
+        if (chosenRarity === 'blue') {
+            winTitleEl.classList.add('win-title-blue');
+        } else if (chosenRarity === 'purple') {
+            winTitleEl.classList.add('win-title-purple');
+        } else if (chosenRarity === 'orange') {
+            winTitleEl.classList.add('win-title-orange');
+        }
+        
+        // Показать результат
+        itemNameEl.textContent = item;
         resultDiv.classList.remove("hidden");
     };
 }
