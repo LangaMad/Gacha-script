@@ -26,15 +26,15 @@ body {
 }
 
 .title {
-    font-size: 14rem;
+    font-size: 9rem;
     color: white;
     text-shadow: 0 0 30px #5ecbff, 0 0 60px #5ecbff;
     font-weight: bold;
-    margin-bottom: 100px;
+    margin-bottom: 80px;
 }
 
 .play-button {
-    font-size: 6rem;
+    font-size: 4rem;
     padding: 25px 80px;
     border-radius: 40px;
     border: none;
