@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>GACHA</title>
+    <!-- Мета-теги для полноэкранного режима на iOS -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="GACHA">
+    
+    <!-- Важный тег для корректного отображения на мобильных устройствах -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+    
+    <video autoplay loop muted playsinline class="background-video">
+    <source src="background.mp4" type="video/mp4">
+    Ваш браузер не поддерживает видео тег.
+</video>
+
+<!-- ————— ЭКРАН ОЖИДАНИЯ ————— -->
+<div id="startScreen" class="screen">
+    <div class="title">GACHA</div>
+    <button id="startButton" class="play-button">PLAY</button>
+</div>
+
+<!-- ————— ВИДЕО ЗВЕЗД ————— -->
+<video id="starVideo" class="hidden" muted playsinline></video>
+
+<!-- ————— РЕЗУЛЬТАТ ————— -->
+<div id="result" class="result hidden">
+    <div class="result-card">
+
+        <h2 class="win-title">🎉 ВЫ ВЫЙГРАЛИ!</h2>
+
+        <img id="itemIcon" class="item-icon" src="" alt="item">
+
+        <p class="item-name"></p>
+
+        <div class="buttons">
+            <button id="againButton" class="again-button">Ещё раз</button>
+            <button id="closeButton" class="close-button">Закрыть</button>
+        </div>
+
+    </div>
+</div>
+
+<script src="script.js"></script>
+</body>
+</html>
