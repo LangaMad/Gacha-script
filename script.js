@@ -2,11 +2,11 @@
 const items = {
     blue: ["Значок", "Пин"],
     purple: ["Маленький брелок"],
-    orange: ["Чай", "Большой брелок", "Фигурка"]
+    orange: ["Чай", "Большой брелок"]
 };
 
 const rarityWeights = {
-    blue: 80,
+    blue: 88,
     purple: 10,
     orange: 2
 };
