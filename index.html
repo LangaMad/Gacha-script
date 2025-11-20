@@ -2,52 +2,49 @@
 <html>
 <head>
     <title>GACHA</title>
-    <!-- Мета-теги для полноэкранного режима на iOS -->
+    <!-- Мета-теги для мобильных -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-    <meta name="apple-mobile-web-app-title" content="GACHA">
-    <link rel="preload" as="video" href="star_blue.MP4">
-    <link rel="preload" as="video" href="star_purple.MP4">
-    <link rel="preload" as="video" href="star_orange.MP4">
-    
-    <!-- Важный тег для корректного отображения на мобильных устройствах -->
-    <meta name="viewport"
-          content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     
     <link rel="stylesheet" href="style.css">
 </head>
 
 <body>
     
+    <!-- ФОНОВОЕ ВИДЕО -->
+    <!-- Добавь poster="poster.jpg" если есть картинка-заглушка -->
     <video autoplay loop muted playsinline class="background-video">
-    <source src="back.mp4" type="video/mp4">
-    Ваш браузер не поддерживает видео тег.
-</video>
+        <source src="background.mp4" type="video/mp4">
+    </video>
 
-<!-- ————— ЭКРАН ОЖИДАНИЯ ————— -->
-<div id="startScreen" class="screen">
-    <div class="title">GACHA</div>
-    <button id="startButton" class="play-button">PLAY</button>
-</div>
-
-<!-- ————— ВИДЕО ЗВЕЗД ————— -->
-<video id="starVideo" class="hidden" muted playsinline></video>
-
-<!-- ————— РЕЗУЛЬТАТ ————— -->
-<div id="result" class="result hidden">
-    <div class="result-card">
-
-        <h2 class="win-title">🎉 ВЫ ВЫЙГРАЛИ!</h2>
-
-        <p class="item-name"></p>
-
-        <div class="buttons">
-            <button id="closeButton" class="close-button">Закрыть</button>
-        </div>
-
+    <!-- ————— ЭКРАН ОЖИДАНИЯ ————— -->
+    <div id="startScreen" class="screen">
+        <div class="title">GACHA</div>
+        <button id="startButton" class="play-button">PLAY</button>
     </div>
-</div>
 
-<script src="script.js"></script>
+    <!-- ————— ВИДЕО ГАЧИ (3 ШТУКИ) ————— -->
+    <!-- preload="auto" заставляет планшет скачать их сразу при входе на сайт -->
+    <!-- Они скрыты (hidden), но готовы к запуску -->
+    <video id="vid-blue" class="gacha-video hidden" src="star_blue.mp4" muted playsinline preload="auto"></video>
+    <video id="vid-purple" class="gacha-video hidden" src="star_purple.mp4" muted playsinline preload="auto"></video>
+    <video id="vid-orange" class="gacha-video hidden" src="star_orange.mp4" muted playsinline preload="auto"></video>
+
+    <!-- ————— БЕЛАЯ ВСПЫШКА (МАСКИРОВКА ЛАГА) ————— -->
+    <div id="flashOverlay" class="flash-overlay hidden"></div>
+
+    <!-- ————— РЕЗУЛЬТАТ ————— -->
+    <div id="result" class="result hidden">
+        <div class="result-card">
+            <h2 class="win-title">🎉 ВЫ ВЫИГРАЛИ!</h2>
+            <p class="item-name"></p>
+            <div class="buttons">
+                <button id="closeButton" class="close-button">Закрыть</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
 </body>
 </html>
