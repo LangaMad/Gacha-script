@@ -12,9 +12,9 @@ const rarityWeights = {
 };
 
 const rarityVideos = {
-    blue: "videos/star_blue.mp4",
-    purple: "videos/star_purple.mp4",
-    orange: "videos/star_orange.mp4"
+    blue: "star_blue.mp4",
+    purple: "star_purple.mp4",
+    orange: "star_orange.mp4"
 };
 
 
