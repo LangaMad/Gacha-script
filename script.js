@@ -1,4 +1,4 @@
-// ——— НАСТРОЙКИ ———
+// ——— НАСТРОЙКИ ПРЕДМЕТОВ ———
 const items = {
     blue: ["Значок", "Пин"],
     purple: ["Маленький брелок"],
@@ -11,31 +11,42 @@ const rarityWeights = {
     orange: 2
 };
 
-const rarityVideos = {
-    blue: "star_blue.MP4",
-    purple: "star_purple.MP4",
-    orange: "star_orange.MP4"
-};
-
-
+// Ссылки на элементы DOM
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
-const starVideo = document.getElementById("starVideo");
 const resultDiv = document.getElementById("result");
-const winTitleEl = document.querySelector(".win-title");
 const itemNameEl = document.querySelector(".item-name");
+const closeButton = document.getElementById("closeButton");
+const flashOverlay = document.getElementById("flashOverlay");
 
+// Получаем доступ к трем видео-плеерам сразу
+const videos = {
+    blue: document.getElementById("vid-blue"),
+    purple: document.getElementById("vid-purple"),
+    orange: document.getElementById("vid-orange")
+};
 
-document.getElementById("closeButton").addEventListener("click", () => {
+// ——— СОБЫТИЯ ———
+
+// Кнопка Закрыть
+closeButton.addEventListener("click", () => {
     resultDiv.classList.add("hidden");
     startScreen.classList.remove("hidden");
+    
+    // Сбрасываем все видео на начало (на всякий случай)
+    Object.values(videos).forEach(v => {
+        v.pause();
+        v.currentTime = 0;
+        v.classList.add("hidden");
+    });
 });
 
-
+// Кнопка PLAY
 startButton.addEventListener("click", spinLottery);
 
+// ——— ЛОГИКА ГАЧИ ———
 function spinLottery() {
-    // 1. Считаем математику (кто выпал)
+    // 1. Рассчитываем, что выпало
     const total = Object.values(rarityWeights).reduce((a, b) => a + b, 0);
     let random = Math.random() * total;
     let sum = 0;
@@ -49,62 +60,69 @@ function spinLottery() {
         }
     }
 
-    const list = [...items[chosenRarity]];
-    const item = list[Math.floor(Math.random() * list.length)];
+    // Выбираем конкретный предмет
+    let list = [...items[chosenRarity]];
+    let item = list[Math.floor(Math.random() * list.length)];
 
+    // Логика исключения (если есть Мику)
     if (item.includes("Мику")) {
         items[chosenRarity] = items[chosenRarity].filter(i => i !== item);
     }
 
-    // 2. Подготавливаем видео
-    starVideo.src = rarityVideos[chosenRarity];
+    // 2. ПОДГОТОВКА К ЗАПУСКУ
+    const currentVideo = videos[chosenRarity];
     
-    // Важно: Мы пока НЕ скрываем startScreen и НЕ показываем starVideo (remove hidden),
-    // чтобы не было видно черного мигания.
+    // Включаем "звук" (если браузер разрешил)
+    currentVideo.muted = false;
 
-    // 3. Запускаем загрузку и воспроизведение
-    starVideo.play().then(() => {
-        // Этот код сработает, когда видео реально начало проигрываться
-        startScreen.classList.add("hidden");   // Скрываем меню
-        starVideo.classList.remove("hidden");  // Показываем видео
-    }).catch(error => {
-        console.log("Ошибка воспроизведения:", error);
-        // Если вдруг ошибка, всё равно покажем результат, чтобы игра не зависла
-        showResult(); 
-    });
+    // 3. ЭФФЕКТ ВСПЫШКИ (Скрываем лаги)
+    // Мгновенно показываем белый экран
+    flashOverlay.classList.remove("hidden");
+    flashOverlay.style.opacity = "1";
 
-    starVideo.onended = () => {
-        starVideo.classList.add("hidden");
-        showResult(); // Вынес логику показа результата в отдельную функцию
-    };
+    // Скрываем меню (пользователь этого не увидит под вспышкой)
+    startScreen.classList.add("hidden");
 
-    // Вспомогательная функция для показа результата (чтобы не дублировать код)
-    function showResult() {
-        itemNameEl.classList.remove('item-name-blue', 'item-name-purple', 'item-name-orange');
-        itemNameEl.classList.add(`item-name-${chosenRarity}`);
-        itemNameEl.textContent = item;
-        resultDiv.classList.remove("hidden");
+    // Показываем тег видео
+    currentVideo.classList.remove("hidden");
+    currentVideo.currentTime = 0;
+
+    // 4. ЗАПУСК ВИДЕО
+    const playPromise = currentVideo.play();
+
+    if (playPromise !== undefined) {
+        playPromise.then(() => {
+            // Видео реально пошло играть.
+            // Убираем белую вспышку с небольшой задержкой (0.1 сек), 
+            // чтобы точно перекрыть момент старта.
+            setTimeout(() => {
+                flashOverlay.classList.add("hidden");
+            }, 150);
+        })
+        .catch(error => {
+            // Если автоплей заблокирован или видео сломалось
+            console.error("Ошибка видео:", error);
+            flashOverlay.classList.add("hidden");
+            showResult(chosenRarity, item);
+        });
     }
+
+    // 5. КОГДА ВИДЕО ЗАКОНЧИЛОСЬ
+    currentVideo.onended = () => {
+        currentVideo.classList.add("hidden");
+        currentVideo.pause(); // Останавливаем ресурсы
+        showResult(chosenRarity, item);
+    };
 }
 
-// ——— РЕДКОЕ ВИДЕО НА СТАРТОВОМ ЭКРАНЕ ———
-// function playRandomRareVideo() {
-//     if (!startScreen.classList.contains("hidden")) {
-
-//         const rare = Math.random() < 0.5 ? "star_purple.mp4" : "star_orange.mp4";
-
-//         starVideo.src = "videos/" + rare;
-//         starVideo.classList.remove("hidden");
-//         starVideo.play();
-
-//         starVideo.onended = () => {
-//             starVideo.classList.add("hidden");
-//         };
-//     }
-
-//     // следующее время: от 5 до 10 минут
-//     const next = 1000 * 60 * (5 + Math.random() * 5);
-//     setTimeout(playRandomRareVideo, next);
-// }
-
-// setTimeout(playRandomRareVideo, 30000); // первым спустя 30 секунд
+// Функция показа результата
+function showResult(rarity, itemText) {
+    // Очищаем старые цвета
+    itemNameEl.classList.remove('item-name-blue', 'item-name-purple', 'item-name-orange');
+    // Добавляем новый цвет
+    itemNameEl.classList.add(`item-name-${rarity}`);
+    // Пишем текст
+    itemNameEl.textContent = itemText;
+    // Показываем экран
+    resultDiv.classList.remove("hidden");
+}
