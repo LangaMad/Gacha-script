@@ -75,23 +75,23 @@ function spinLottery() {
 }
 
 // ——— РЕДКОЕ ВИДЕО НА СТАРТОВОМ ЭКРАНЕ ———
-function playRandomRareVideo() {
-    if (!startScreen.classList.contains("hidden")) {
+// function playRandomRareVideo() {
+//     if (!startScreen.classList.contains("hidden")) {
 
-        const rare = Math.random() < 0.5 ? "star_purple.mp4" : "star_orange.mp4";
+//         const rare = Math.random() < 0.5 ? "star_purple.mp4" : "star_orange.mp4";
 
-        starVideo.src = "videos/" + rare;
-        starVideo.classList.remove("hidden");
-        starVideo.play();
+//         starVideo.src = "videos/" + rare;
+//         starVideo.classList.remove("hidden");
+//         starVideo.play();
 
-        starVideo.onended = () => {
-            starVideo.classList.add("hidden");
-        };
-    }
+//         starVideo.onended = () => {
+//             starVideo.classList.add("hidden");
+//         };
+//     }
 
-    // следующее время: от 5 до 10 минут
-    const next = 1000 * 60 * (5 + Math.random() * 5);
-    setTimeout(playRandomRareVideo, next);
-}
+//     // следующее время: от 5 до 10 минут
+//     const next = 1000 * 60 * (5 + Math.random() * 5);
+//     setTimeout(playRandomRareVideo, next);
+// }
 
-setTimeout(playRandomRareVideo, 30000); // первым спустя 30 секунд
+// setTimeout(playRandomRareVideo, 30000); // первым спустя 30 секунд
