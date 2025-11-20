@@ -35,9 +35,7 @@ document.getElementById("closeButton").addEventListener("click", () => {
 startButton.addEventListener("click", spinLottery);
 
 function spinLottery() {
-    startScreen.classList.add("hidden");
-
-
+    // 1. Считаем математику (кто выпал)
     const total = Object.values(rarityWeights).reduce((a, b) => a + b, 0);
     let random = Math.random() * total;
     let sum = 0;
@@ -51,27 +49,42 @@ function spinLottery() {
         }
     }
 
-
     const list = [...items[chosenRarity]];
     const item = list[Math.floor(Math.random() * list.length)];
-
 
     if (item.includes("Мику")) {
         items[chosenRarity] = items[chosenRarity].filter(i => i !== item);
     }
 
-
+    // 2. Подготавливаем видео
     starVideo.src = rarityVideos[chosenRarity];
-    starVideo.classList.remove("hidden");
-    starVideo.play();
+    
+    // Важно: Мы пока НЕ скрываем startScreen и НЕ показываем starVideo (remove hidden),
+    // чтобы не было видно черного мигания.
+
+    // 3. Запускаем загрузку и воспроизведение
+    starVideo.play().then(() => {
+        // Этот код сработает, когда видео реально начало проигрываться
+        startScreen.classList.add("hidden");   // Скрываем меню
+        starVideo.classList.remove("hidden");  // Показываем видео
+    }).catch(error => {
+        console.log("Ошибка воспроизведения:", error);
+        // Если вдруг ошибка, всё равно покажем результат, чтобы игра не зависла
+        showResult(); 
+    });
 
     starVideo.onended = () => {
         starVideo.classList.add("hidden");
+        showResult(); // Вынес логику показа результата в отдельную функцию
+    };
+
+    // Вспомогательная функция для показа результата (чтобы не дублировать код)
+    function showResult() {
         itemNameEl.classList.remove('item-name-blue', 'item-name-purple', 'item-name-orange');
         itemNameEl.classList.add(`item-name-${chosenRarity}`);
         itemNameEl.textContent = item;
         resultDiv.classList.remove("hidden");
-    };
+    }
 }
 
 // ——— РЕДКОЕ ВИДЕО НА СТАРТОВОМ ЭКРАНЕ ———
