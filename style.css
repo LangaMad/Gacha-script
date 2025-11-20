@@ -2,18 +2,20 @@ body {
     margin: 0;
     overflow: hidden;
     font-family: 'Arial', sans-serif;
+    background-color: #000; /* Черный фон на случай, если видео долго грузится */
 }
 
+/* Оптимизированный фон */
 .background-video {
     position: fixed;
-    top: 50%;
-    left: 50%;
-    min-width: 100%;
-    min-height: 100%;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    object-fit: cover; /* Самое важное для производительности */
     z-index: -1;
-    transform: translateX(-50%) translateY(-50%);
-    background-size: cover;
 }
+
 /* ——— ЭКРАН ОЖИДАНИЯ ——— */
 .screen {
     position: fixed;
@@ -23,6 +25,7 @@ body {
     flex-direction: column;
     justify-content: center;
     align-items: center;
+    z-index: 5;
 }
 
 .title {
@@ -31,6 +34,12 @@ body {
     text-shadow: 0 0 30px #5ecbff, 0 0 60px #5ecbff;
     font-weight: bold;
     margin-bottom: 80px;
+}
+
+/* Адаптив для планшетов и мобилок */
+@media (max-width: 768px) {
+    .title { font-size: 5rem; }
+    .play-button { font-size: 2.5rem; padding: 15px 50px; }
 }
 
 .play-button {
@@ -42,26 +51,43 @@ body {
     color: white;
     cursor: pointer;
     box-shadow: 0 0 25px rgba(0,140,255,0.7);
-    transition: 0.3s;
+    transition: transform 0.2s;
 }
 
 .play-button:hover {
     transform: scale(1.05);
 }
 
-/* ——— ВИДЕО ——— */
-video {
+.play-button:active {
+    transform: scale(0.95);
+}
+
+/* ——— ВИДЕО ГАЧИ ——— */
+.gacha-video {
     position: fixed;
     top: 0; left: 0;
     width: 100%; height: 100%;
     object-fit: cover;
-    z-index: 10;
+    z-index: 15; /* Выше меню, но ниже результата */
+    background: black;
+}
+
+/* ——— БЕЛАЯ ВСПЫШКА ——— */
+.flash-overlay {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    background: white;
+    z-index: 100; /* Самый верхний слой */
+    opacity: 1;
+    transition: opacity 0.4s ease-out; /* Плавное исчезновение */
+    pointer-events: none;
 }
 
 .hidden {
-    opacity: 0;
-    visibility: hidden;
-    pointer-events: none;
+    opacity: 0 !important;
+    visibility: hidden !important;
+    pointer-events: none !important;
 }
 
 /* ——— РЕЗУЛЬТАТ ——— */
@@ -74,33 +100,33 @@ video {
     display: flex;
     justify-content: center;
     align-items: center;
+    opacity: 1;
+    transition: opacity 0.3s;
 }
 
-
 .result-card {
-    background: rgba(30, 30, 50, 0.9);
+    background: rgba(30, 30, 50, 0.95);
     padding: 40px 60px;
     border-radius: 30px;
     text-align: center;
     color: white;
-    box-shadow: 0 0 40px rgba(0,0,0,0.4);
+    box-shadow: 0 0 40px rgba(0,0,0,0.6);
+    max-width: 80%;
 }
 
-/* Возвращаем заголовку его обычный вид */
 .win-title {
     font-size: 3rem;
     margin-bottom: 20px;
 }
 
 .item-name {
-    font-size: 2.8rem;
+    font-size: 3rem;
     font-weight: bold;
-    margin-bottom: 40px;
-    margin-top: 30px;
-    transition: color 0.3s, text-shadow 0.3s; /* Плавный переход */
+    margin: 30px 0 40px 0;
+    text-transform: uppercase;
 }
 
-/* --- ЦВЕТА РЕДКОСТИ ДЛЯ НАЗВАНИЯ ПРЕДМЕТА --- */
+/* ЦВЕТА РЕДКОСТИ */
 .item-name-blue {
     color: #5ecbff;
     text-shadow: 0 0 15px #5ecbff, 0 0 25px #5ecbff;
@@ -116,28 +142,14 @@ video {
     text-shadow: 0 0 15px #ff9a4f, 0 0 25px #ff9a4f;
 }
 
-.item-name {
-    font-size: 4rem;
-    font-weight: bold;
-    margin-bottom: 40px;
-}
-
-/* кнопки */
-.buttons {
-    display: flex;
-    justify-content: center;
-}
-
 .close-button {
     padding: 15px 40px;
-    font-size: 1.8rem;
+    font-size: 1.5rem;
     border: none;
     border-radius: 20px;
     cursor: pointer;
-    background: #ff5e7e; /* Цвет можно оставить или поменять на более нейтральный */
+    background: #ff5e7e;
     color: white;
-    transition: transform 0.2s; /* Добавим небольшую анимацию для красоты */
+    transition: transform 0.2s;
 }
-.close-button:hover {
-    transform: scale(1.05);
-}
+.close-button:hover { transform: scale(1.05); }
