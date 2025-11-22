@@ -26,27 +26,46 @@ const videos = {
     orange: document.getElementById("vid-orange")
 };
 
+
+let idleTimer;
+// Время бездействия (5 минут = 300000 мс)
+// Для теста можешь поставить 10000 (10 секунд), чтобы проверить, работает ли
+const IDLE_TIME = 5 * 60 * 1000; 
+
+// ——— ЗАПУСК ПРИ ЗАГРУЗКЕ ———
+// Запускаем таймер сразу, как открыли страницу
+resetIdleTimer();
+
 // ——— СОБЫТИЯ ———
 
-// Кнопка Закрыть
+// Кнопка Закрыть (возврат в меню)
 closeButton.addEventListener("click", () => {
     resultDiv.classList.add("hidden");
     startScreen.classList.remove("hidden");
     
-    // Сбрасываем все видео на начало (на всякий случай)
-    Object.values(videos).forEach(v => {
-        v.pause();
-        v.currentTime = 0;
-        v.classList.add("hidden");
-    });
+    // Сбрасываем все видео (на всякий случай)
+    stopAllVideos();
+    
+    // Снова запускаем таймер ожидания
+    resetIdleTimer();
 });
 
 // Кнопка PLAY
-startButton.addEventListener("click", spinLottery);
+startButton.addEventListener("click", () => {
+    // 1. Убиваем таймер бездействия (чтобы видео не вылезло во время игры)
+    clearTimeout(idleTimer);
+    
+    // 2. Если прямо сейчас шло "фоновое" видео — рубим его
+    stopAllVideos();
 
-// ——— ЛОГИКА ГАЧИ ———
+    // 3. Запускаем саму гачу
+    spinLottery();
+});
+
+
+// ——— ФУНКЦИЯ ГАЧИ (ИГРА) ———
 function spinLottery() {
-    // 1. Рассчитываем, что выпало
+    // Рассчитываем, что выпало
     const total = Object.values(rarityWeights).reduce((a, b) => a + b, 0);
     let random = Math.random() * total;
     let sum = 0;
@@ -60,69 +79,102 @@ function spinLottery() {
         }
     }
 
-    // Выбираем конкретный предмет
     let list = [...items[chosenRarity]];
     let item = list[Math.floor(Math.random() * list.length)];
 
-    // Логика исключения (если есть Мику)
     if (item.includes("Мику")) {
         items[chosenRarity] = items[chosenRarity].filter(i => i !== item);
     }
 
-    // 2. ПОДГОТОВКА К ЗАПУСКУ
+    // ПОДГОТОВКА ВИДЕО
     const currentVideo = videos[chosenRarity];
-    
-    // Включаем "звук" (если браузер разрешил)
-    currentVideo.muted = false;
+    currentVideo.muted = false; // Включаем звук для игрока
 
-    // 3. ЭФФЕКТ ВСПЫШКИ (Скрываем лаги)
-    // Мгновенно показываем белый экран
+    // ЭФФЕКТ ВСПЫШКИ
     flashOverlay.classList.remove("hidden");
     flashOverlay.style.opacity = "1";
-
-    // Скрываем меню (пользователь этого не увидит под вспышкой)
     startScreen.classList.add("hidden");
 
-    // Показываем тег видео
     currentVideo.classList.remove("hidden");
     currentVideo.currentTime = 0;
 
-    // 4. ЗАПУСК ВИДЕО
+    // ЗАПУСК
     const playPromise = currentVideo.play();
 
     if (playPromise !== undefined) {
         playPromise.then(() => {
-            // Видео реально пошло играть.
-            // Убираем белую вспышку с небольшой задержкой (0.1 сек), 
-            // чтобы точно перекрыть момент старта.
             setTimeout(() => {
                 flashOverlay.classList.add("hidden");
             }, 150);
         })
         .catch(error => {
-            // Если автоплей заблокирован или видео сломалось
             console.error("Ошибка видео:", error);
             flashOverlay.classList.add("hidden");
             showResult(chosenRarity, item);
         });
     }
 
-    // 5. КОГДА ВИДЕО ЗАКОНЧИЛОСЬ
+    // КОГДА ЗАКОНЧИЛОСЬ
     currentVideo.onended = () => {
         currentVideo.classList.add("hidden");
-        currentVideo.pause(); // Останавливаем ресурсы
+        currentVideo.pause();
         showResult(chosenRarity, item);
     };
 }
 
-// Функция показа результата
+// ——— ФУНКЦИИ ДЛЯ РЕЖИМА ОЖИДАНИЯ (IDLE) ———
+
+function resetIdleTimer() {
+    // Очищаем старый таймер, если был
+    clearTimeout(idleTimer);
+    // Ставим новый
+    idleTimer = setTimeout(playRandomIdleVideo, IDLE_TIME);
+}
+
+function playRandomIdleVideo() {
+    // Если мы НЕ на стартовом экране (например, смотрим результат), ничего не делаем
+    if (startScreen.classList.contains("hidden")) return;
+
+    // Ты просил: blue_star и orange_star
+    const idleOptions = ["blue", "orange"];
+    const randomChoice = idleOptions[Math.floor(Math.random() * idleOptions.length)];
+    
+    const videoToPlay = videos[randomChoice];
+
+    // Важно: для фона видео лучше оставить без звука или тихое, 
+    // но обычно браузеры разрешают автоплей только muted.
+    // Если хочешь со звуком - убери строку ниже, но на планшете может не сработать автозапуск.
+    videoToPlay.muted = true; 
+
+    videoToPlay.classList.remove("hidden");
+    videoToPlay.currentTime = 0;
+    
+    videoToPlay.play().then(() => {
+        // Видео пошло
+    }).catch(e => console.log("Автоплей заблокирован браузером (это норма):", e));
+
+    // Когда фоновое видео закончилось
+    videoToPlay.onended = () => {
+        videoToPlay.classList.add("hidden");
+        // Снова заводим таймер на следующие 5 минут
+        resetIdleTimer();
+    };
+}
+
+// Вспомогательная функция: остановить всё
+function stopAllVideos() {
+    Object.values(videos).forEach(v => {
+        v.pause();
+        v.currentTime = 0;
+        v.classList.add("hidden");
+        // Убираем обработчик onended, чтобы он не сработал при принудительной остановке
+        v.onended = null; 
+    });
+}
+
 function showResult(rarity, itemText) {
-    // Очищаем старые цвета
     itemNameEl.classList.remove('item-name-blue', 'item-name-purple', 'item-name-orange');
-    // Добавляем новый цвет
     itemNameEl.classList.add(`item-name-${rarity}`);
-    // Пишем текст
     itemNameEl.textContent = itemText;
-    // Показываем экран
     resultDiv.classList.remove("hidden");
 }
