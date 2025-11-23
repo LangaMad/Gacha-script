@@ -6,8 +6,8 @@ const items = {
 };
 
 const rarityWeights = {
-    blue: 79,
-    purple: 18,
+    blue: 77,
+    purple: 20,
     orange: 3
 };
 
