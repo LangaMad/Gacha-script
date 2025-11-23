@@ -178,3 +178,45 @@ function showResult(rarity, itemText) {
     itemNameEl.textContent = itemText;
     resultDiv.classList.remove("hidden");
 }
+
+
+// ——— РОТАЦИЯ ЗАГОЛОВКА ———
+
+const mainTitle = document.getElementById("mainTitle");
+
+const titlesList = [
+    "GACHA",
+    "Попробуй свою удачу",
+    "Гача",
+    "Испытай судьбу",
+    "Твой приз ждет"
+];
+
+let titleIndex = 0;
+
+function rotateTitle() {
+    // 1. Плавно скрываем текст
+    mainTitle.classList.add("fade-out");
+
+    // 2. Ждем полсекунды (пока исчезнет), меняем текст и показываем обратно
+    setTimeout(() => {
+        titleIndex++;
+        if (titleIndex >= titlesList.length) {
+            titleIndex = 0; // Зацикливаем список
+        }
+        
+        mainTitle.textContent = titlesList[titleIndex];
+        
+        // Показываем текст обратно
+        mainTitle.classList.remove("fade-out");
+    }, 500); // 500мс = время transition в CSS
+}
+
+// Запускаем таймер: 15000 мс = 15 секунд
+setInterval(rotateTitle, 15000);
+
+
+
+
+
+
