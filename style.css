@@ -29,17 +29,29 @@ body {
 }
 
 .title {
-    font-size: 9rem;
+    font-size: 6rem; /* Чуть меньше, чем было (9rem), чтобы влезли длинные слова */
     color: white;
     text-shadow: 0 0 30px #5ecbff, 0 0 60px #5ecbff;
     font-weight: bold;
     margin-bottom: 80px;
+    text-align: center;
+    padding: 0 20px; /* Отступы по бокам */
+    
+    /* Магия плавной смены текста */
+    transition: opacity 0.5s ease-in-out;
+    opacity: 1;
 }
 
-/* Адаптив для планшетов и мобилок */
+/* Класс для момента исчезновения */
+.title.fade-out {
+    opacity: 0;
+}
+
+/* На мобильных делаем шрифт еще меньше, чтобы длинный текст влез */
 @media (max-width: 768px) {
-    .title { font-size: 5rem; }
-    .play-button { font-size: 2.5rem; padding: 15px 50px; }
+    .title { 
+        font-size: 3.5rem; /* Оптимальный размер для длинных фраз на телефоне */
+    }
 }
 
 .play-button {
