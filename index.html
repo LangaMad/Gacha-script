@@ -33,6 +33,12 @@
     <video id="vid-purple" class="gacha-video hidden" src="star_purple.MP4" muted playsinline preload="auto"></video>
     <video id="vid-orange" class="gacha-video hidden" src="star_orange.MP4" muted playsinline preload="auto"></video>
 
+    <!-- ————— ЗВУКИ РЕЗУЛЬТАТА (3 ШТУКИ) ————— -->
+    <!-- preload="auto" — планшет скачает их сразу, чтобы звук не опаздывал -->
+    <audio id="snd-blue" src="blue_end.MP3" preload="auto"></audio>
+    <audio id="snd-purple" src="purple_end.MP3" preload="auto"></audio>
+    <audio id="snd-orange" src="orange_end.MP3" preload="auto"></audio>
+
     <!-- ————— БЕЛАЯ ВСПЫШКА (МАСКИРОВКА ЛАГА) ————— -->
     <div id="flashOverlay" class="flash-overlay hidden"></div>
 
@@ -41,6 +47,8 @@
         <div class="result-card">
             <h2 class="win-title">🎉 ВЫ ВЫИГРАЛИ!</h2>
             <p class="item-name"></p>
+            <!-- Звёздочки редкости: 3 / 4 / 5, появляются по одной -->
+            <div id="starsBox" class="stars"></div>
             <div class="buttons">
                 <button id="closeButton" class="close-button">Закрыть</button>
             </div>

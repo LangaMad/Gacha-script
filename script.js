@@ -11,6 +11,22 @@ const rarityWeights = {
     orange: 5
 };
 
+// ——— ЗАЩИТА ОТ СЕРИЙ ———
+// Сколько раз подряд максимум может выпасть одна и та же редкость.
+// null = без ограничения. Сейчас: фиолетовый не может выпасть 3 раза подряд.
+const maxStreak = {
+    blue: null,
+    purple: 2,
+    orange: null
+};
+
+// Сколько звёздочек показывать под названием приза
+const starCounts = {
+    blue: 3,
+    purple: 4,
+    orange: 5
+};
+
 // Ссылки на элементы DOM
 const startScreen = document.getElementById("startScreen");
 const startButton = document.getElementById("startButton");
@@ -18,6 +34,7 @@ const resultDiv = document.getElementById("result");
 const itemNameEl = document.querySelector(".item-name");
 const closeButton = document.getElementById("closeButton");
 const flashOverlay = document.getElementById("flashOverlay");
+const starsBox = document.getElementById("starsBox");
 
 // Получаем доступ к трем видео-плеерам сразу
 const videos = {
@@ -26,6 +43,17 @@ const videos = {
     orange: document.getElementById("vid-orange")
 };
 
+// Звуки, которые играют вместе с показом приза
+const sounds = {
+    blue: document.getElementById("snd-blue"),
+    purple: document.getElementById("snd-purple"),
+    orange: document.getElementById("snd-orange")
+};
+
+
+// Что выпало в прошлый раз и сколько раз подряд — для защиты от серий
+let lastRarity = null;
+let streakCount = 0;
 
 let idleTimer;
 // Время бездействия (5 минут = 300000 мс)
@@ -43,8 +71,10 @@ closeButton.addEventListener("click", () => {
     resultDiv.classList.add("hidden");
     startScreen.classList.remove("hidden");
     
-    // Сбрасываем все видео (на всякий случай)
+    // Сбрасываем все видео и звуки (на всякий случай)
     stopAllVideos();
+    stopAllSounds();
+    starsBox.innerHTML = "";
     
     // Снова запускаем таймер ожидания
     resetIdleTimer();
@@ -55,28 +85,56 @@ startButton.addEventListener("click", () => {
     // 1. Убиваем таймер бездействия (чтобы видео не вылезло во время игры)
     clearTimeout(idleTimer);
     
-    // 2. Если прямо сейчас шло "фоновое" видео — рубим его
-    stopAllVideos();
+    // 2. Разблокируем звук (планшеты разрешают это только внутри касания)
+    primeSounds();
 
-    // 3. Запускаем саму гачу
+    // 3. Если прямо сейчас шло "фоновое" видео или звук — рубим
+    stopAllVideos();
+    stopAllSounds();
+
+    // 4. Запускаем саму гачу
     spinLottery();
 });
 
 
+// ——— ВЫБОР РЕДКОСТИ ———
+// exclude — редкость, которую нужно пропустить (для защиты от серий).
+// Оставшиеся редкости сохраняют пропорции между собой.
+function pickRarity(exclude) {
+    let total = 0;
+    for (const [rarity, weight] of Object.entries(rarityWeights)) {
+        if (rarity !== exclude) total += weight;
+    }
+
+    let random = Math.random() * total;
+    let sum = 0;
+
+    for (const [rarity, weight] of Object.entries(rarityWeights)) {
+        if (rarity === exclude) continue;
+        sum += weight;
+        if (random <= sum) return rarity;
+    }
+}
+
 // ——— ФУНКЦИЯ ГАЧИ (ИГРА) ———
 function spinLottery() {
     // Рассчитываем, что выпало
-    const total = Object.values(rarityWeights).reduce((a, b) => a + b, 0);
-    let random = Math.random() * total;
-    let sum = 0;
-    let chosenRarity;
+    let chosenRarity = pickRarity(null);
 
-    for (const [rarity, weight] of Object.entries(rarityWeights)) {
-        sum += weight;
-        if (random <= sum) {
-            chosenRarity = rarity;
-            break;
-        }
+    // Защита от серий: если эта редкость уже выпадала подряд сколько можно —
+    // перевыбираем без неё. Важно: это происходит ДО запуска видео,
+    // поэтому видео, приз, звёздочки и звук всегда совпадают между собой.
+    const limit = maxStreak[chosenRarity];
+    if (limit && chosenRarity === lastRarity && streakCount >= limit) {
+        chosenRarity = pickRarity(chosenRarity);
+    }
+
+    // Запоминаем для следующего прокрута
+    if (chosenRarity === lastRarity) {
+        streakCount++;
+    } else {
+        lastRarity = chosenRarity;
+        streakCount = 1;
     }
 
     let list = [...items[chosenRarity]];
@@ -172,10 +230,79 @@ function stopAllVideos() {
     });
 }
 
+// Вспомогательная функция: заглушить все звуки
+function stopAllSounds() {
+    Object.values(sounds).forEach(a => {
+        a.pause();
+        a.currentTime = 0;
+    });
+}
+
+// Планшеты и телефоны разрешают запуск звука только внутри касания.
+// Поэтому при первом нажатии PLAY мы "прогреваем" все три файла: беззвучно
+// запускаем и сразу останавливаем. После этого их можно играть когда угодно.
+let soundsPrimed = false;
+function primeSounds() {
+    if (soundsPrimed) return;
+    soundsPrimed = true;
+
+    Object.values(sounds).forEach(a => {
+        a.muted = true;
+        const p = a.play();
+        if (p !== undefined) {
+            p.then(() => {
+                a.pause();
+                a.currentTime = 0;
+                a.muted = false;
+            }).catch(() => {
+                // Не получилось — не страшно, звук просто включится позже
+                a.muted = false;
+            });
+        } else {
+            a.muted = false;
+        }
+    });
+}
+
+// ——— ЗВЁЗДОЧКИ РЕДКОСТИ ———
+// Рисуем нужное количество звёздочек, каждая со своей задержкой,
+// поэтому они появляются по одной, а не все сразу.
+function renderStars(rarity) {
+    starsBox.innerHTML = "";
+    starsBox.classList.remove("stars-blue", "stars-purple", "stars-orange");
+    starsBox.classList.add(`stars-${rarity}`);
+
+    const count = starCounts[rarity] || 0;
+
+    for (let i = 0; i < count; i++) {
+        const star = document.createElement("span");
+        star.className = "star";
+        star.textContent = "★";
+        // 1-я через 0.35с (когда карточка уже проявилась), дальше каждые 0.22с
+        star.style.animationDelay = (0.35 + i * 0.22) + "s";
+        starsBox.appendChild(star);
+    }
+}
+
 function showResult(rarity, itemText) {
     itemNameEl.classList.remove('item-name-blue', 'item-name-purple', 'item-name-orange');
     itemNameEl.classList.add(`item-name-${rarity}`);
     itemNameEl.textContent = itemText;
+
+    // Звёздочки по редкости
+    renderStars(rarity);
+
+    // Звук выигрыша
+    const snd = sounds[rarity];
+    if (snd) {
+        snd.muted = false; // на случай, если "прогрев" ещё не успел снять заглушку
+        snd.currentTime = 0;
+        const p = snd.play();
+        if (p !== undefined) {
+            p.catch(e => console.log("Звук не запустился:", e));
+        }
+    }
+
     resultDiv.classList.remove("hidden");
 }
 
