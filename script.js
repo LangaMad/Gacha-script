@@ -2,13 +2,13 @@
 const items = {
     blue: ["Значок", "Пин"],
     purple: ["Брелок", "Печатка", "Большая Печатка"],
-    orange: ["Чай", "Чай в пакетиках(Упк.)", "Кухенки", "Сидячая Фигурка"]
+    orange: ["Чай", "Кухенки", "Сидячая Фигурка"]
 };
 
 const rarityWeights = {
-    blue: 70,
-    purple: 25,
-    orange: 5
+    blue: 77,
+    purple: 20,
+    orange: 3
 };
 
 // ——— ЗАЩИТА ОТ СЕРИЙ ———
@@ -56,9 +56,15 @@ let lastRarity = null;
 let streakCount = 0;
 
 let idleTimer;
-// Время бездействия (5 минут = 300000 мс)
-// Для теста можешь поставить 10000 (10 секунд), чтобы проверить, работает ли
-const IDLE_TIME = 4 * 60 * 1000; 
+
+// ——— РЕЖИМ ОЖИДАНИЯ ———
+// Через сколько простоя запускать ролик-завлекалку.
+// Пауза берётся случайная в этом диапазоне, чтобы не выглядело как метроном.
+const IDLE_MIN = 30 * 1000; // 30 секунд
+const IDLE_MAX = 40 * 1000; // 40 секунд
+
+// Какие ролики крутить в ожидании — случайно один из списка.
+const idleOptions = ["purple", "orange"];
 
 // ——— ЗАПУСК ПРИ ЗАГРУЗКЕ ———
 // Запускаем таймер сразу, как открыли страницу
@@ -80,11 +86,11 @@ closeButton.addEventListener("click", () => {
     resetIdleTimer();
 });
 
-// Кнопка PLAY
-startButton.addEventListener("click", () => {
+// Запуск игры. Вызывается и кнопкой PLAY, и тапом по ролику-завлекалке.
+function startGame() {
     // 1. Убиваем таймер бездействия (чтобы видео не вылезло во время игры)
     clearTimeout(idleTimer);
-    
+
     // 2. Разблокируем звук (планшеты разрешают это только внутри касания)
     primeSounds();
 
@@ -94,7 +100,10 @@ startButton.addEventListener("click", () => {
 
     // 4. Запускаем саму гачу
     spinLottery();
-});
+}
+
+// Кнопка PLAY
+startButton.addEventListener("click", startGame);
 
 
 // ——— ВЫБОР РЕДКОСТИ ———
@@ -185,36 +194,47 @@ function spinLottery() {
 function resetIdleTimer() {
     // Очищаем старый таймер, если был
     clearTimeout(idleTimer);
-    // Ставим новый
-    idleTimer = setTimeout(playRandomIdleVideo, IDLE_TIME);
+    // Ставим новый со случайной паузой 10–15 секунд
+    const delay = IDLE_MIN + Math.random() * (IDLE_MAX - IDLE_MIN);
+    idleTimer = setTimeout(playRandomIdleVideo, delay);
 }
 
 function playRandomIdleVideo() {
-    // Если мы НЕ на стартовом экране (например, смотрим результат), ничего не делаем
-    if (startScreen.classList.contains("hidden")) return;
+    // Если мы НЕ на стартовом экране (например, смотрим результат) —
+    // не лезем поверх, но и не бросаем цикл: пробуем ещё раз через паузу
+    if (startScreen.classList.contains("hidden")) {
+        resetIdleTimer();
+        return;
+    }
 
-    // Ты просил: blue_star и orange_star
-    const idleOptions = ["blue", "orange"];
     const randomChoice = idleOptions[Math.floor(Math.random() * idleOptions.length)];
-    
     const videoToPlay = videos[randomChoice];
 
-    // Важно: для фона видео лучше оставить без звука или тихое, 
-    // но обычно браузеры разрешают автоплей только muted.
-    // Если хочешь со звуком - убери строку ниже, но на планшете может не сработать автозапуск.
-    videoToPlay.muted = true; 
+    // Браузеры разрешают автозапуск только без звука.
+    // Со звуком на планшете ролик просто не запустится.
+    videoToPlay.muted = true;
 
     videoToPlay.classList.remove("hidden");
     videoToPlay.currentTime = 0;
-    
-    videoToPlay.play().then(() => {
-        // Видео пошло
-    }).catch(e => console.log("Автоплей заблокирован браузером (это норма):", e));
 
-    // Когда фоновое видео закончилось
+    // Ролик закрывает собой кнопку PLAY, поэтому тап по нему сам запускает игру.
+    // Вешаем обработчик только на время завлекалки: во время настоящей гачи
+    // видео должно быть некликабельным, иначе можно перезапустить прокрут на середине.
+    videoToPlay.onclick = startGame;
+
+    videoToPlay.play().catch(e => {
+        // Автозапуск заблокирован — прячем обратно и пробуем позже,
+        // иначе режим ожидания заглохнет навсегда
+        console.log("Автоплей заблокирован браузером (это норма):", e);
+        videoToPlay.classList.add("hidden");
+        videoToPlay.onclick = null;
+        resetIdleTimer();
+    });
+
+    // Когда ролик закончился — ждём следующую паузу
     videoToPlay.onended = () => {
         videoToPlay.classList.add("hidden");
-        // Снова заводим таймер на следующие 5 минут
+        videoToPlay.onclick = null;
         resetIdleTimer();
     };
 }
@@ -225,8 +245,9 @@ function stopAllVideos() {
         v.pause();
         v.currentTime = 0;
         v.classList.add("hidden");
-        // Убираем обработчик onended, чтобы он не сработал при принудительной остановке
-        v.onended = null; 
+        // Убираем обработчики, чтобы они не сработали при принудительной остановке
+        v.onended = null;
+        v.onclick = null;
     });
 }
 
